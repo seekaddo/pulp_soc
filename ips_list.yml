@@ -52,8 +52,8 @@ ape_core:
   group:  seekaddo
   domain: [cluster, soc]
 axi/axi:
-  commit: ape_axi_v0.24.1
-  group:  seekaddo
+  commit: v0.24.1 #ape_axi_v0.24.1
+  #group:  seekaddo
   domain: [cluster, soc]
 # axi/axi_node:
 #   commit: v1.1.4

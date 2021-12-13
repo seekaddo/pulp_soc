@@ -47,6 +47,10 @@ apb/apb_node:
 apb_interrupt_cntrl:
   commit: v0.0.1
   domain: [soc]
+ape_core:
+  commit: master
+  group:  seekaddo
+  domain: [cluster, soc]
 axi/axi:
   commit: ape_axi_v0.24.1
   group:  seekaddo

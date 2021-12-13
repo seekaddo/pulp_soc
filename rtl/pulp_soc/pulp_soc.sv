@@ -506,6 +506,9 @@ module pulp_soc import dm::*; #(
     //********************* SOC L2 RAM ***********************
     //********************************************************
 
+    //todo: On the Target Instruction is read using this L2 memory reader
+    //todo: All source code -C coude instructions are stored in L2_ private BANK 1
+    //todo: check s_mem_l2_pri_bus for more details
     l2_ram_multi_bank #(
         .NB_BANKS              ( NB_L2_BANKS )
     ) l2_ram_i (
@@ -517,11 +520,25 @@ module pulp_soc import dm::*; #(
         .mem_pri_slave   ( s_mem_l2_pri_bus   )
     );
 
+    localparam int unsigned SLAVE_INDEX       = 2;
+    ape_core_t ape_core_debug_l2[SLAVE_INDEX];
+
+        assign ape_core_debug_l2[0].add     = s_mem_l2_pri_bus[0].Slave.add;
+        assign ape_core_debug_l2[0].r_rdata  = s_mem_l2_pri_bus[0].Slave.r_rdata;
+        assign ape_core_debug_l2[0].req     = s_mem_l2_pri_bus[0].Slave.req;
+        assign ape_core_debug_l2[0].gnt     = s_mem_l2_pri_bus[0].Slave.gnt;
+        assign ape_core_debug_l2[0].r_opc     = s_mem_l2_pri_bus[0].Slave.r_opc;
+        assign ape_core_debug_l2[0].r_valid     = s_mem_l2_pri_bus[0].Slave.r_valid;
+
+
+
 
     //********************************************************
     //******              SOC BOOT ROM             ***********
     //********************************************************
 
+    //todo: Change boot read address to read ape_core instr length=34 Or any
+    //todo: just fpr FPGA emulation
     boot_rom #(
         .ROM_ADDR_WIDTH(ROM_ADDR_WIDTH)
     ) boot_rom_i (
@@ -531,6 +548,16 @@ module pulp_soc import dm::*; #(
         .mem_slave   ( s_mem_rom_bus   ),
         .test_mode_i ( dft_test_mode_i )
     );
+
+    logic [31:0] ape_core_rom_rdata;
+    logic [31:0] ape_core_rom_wdata;
+    logic        ape_core_rom_gnt;
+    logic        ape_core_rom_rvalid;
+
+    assign ape_core_rom_rdata = s_mem_rom_bus.Slave.r_rdata;
+    assign ape_core_rom_wdata = s_mem_rom_bus.Slave.wdata;
+    assign ape_core_rom_gnt = s_mem_rom_bus.Slave.gnt;
+    assign ape_core_rom_rvalid = s_mem_rom_bus.Slave.r_valid;
 
     //********************************************************
     //********************* SOC PERIPHERALS ******************

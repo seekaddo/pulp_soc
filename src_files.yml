@@ -3,6 +3,7 @@ pulp_soc:
     ../../rtl/includes,
     rtl/include,
     ../axi/axi/include
+    ../ape_core/include
   ]
   files: [
     rtl/pulp_soc/pkg_soc_interconnect.sv,

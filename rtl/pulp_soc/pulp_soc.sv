@@ -10,9 +10,11 @@
 
 
 `include "pulp_soc_defines.sv"
+`include "ape_core.svh"
 
 module pulp_soc import dm::*; import ape_pkg::*; #(
     parameter CORE_TYPE               = 0,
+    parameter APE_EMUL_TYPE           = 1,
     parameter USE_FPU                 = 1,
     parameter USE_HWPE                = 1,
     parameter USE_CLUSTER_EVENT       = 1,
@@ -520,15 +522,17 @@ module pulp_soc import dm::*; import ape_pkg::*; #(
         .mem_pri_slave   ( s_mem_l2_pri_bus   )
     );
 
-    localparam int unsigned SLAVE_INDEX       = 2;
+`ifdef APE_L2_PSLAVE0_EMUL
+    localparam int unsigned SLAVE_INDEX       = 1;
     ape_core_t ape_core_debug_l2[SLAVE_INDEX];
 
-        assign ape_core_debug_l2[0].add     = s_mem_l2_pri_bus[0].Slave.add;
-        assign ape_core_debug_l2[0].r_rdata  = s_mem_l2_pri_bus[0].Slave.r_rdata;
-        assign ape_core_debug_l2[0].req     = s_mem_l2_pri_bus[0].Slave.req;
-        assign ape_core_debug_l2[0].gnt     = s_mem_l2_pri_bus[0].Slave.gnt;
-        assign ape_core_debug_l2[0].r_opc     = s_mem_l2_pri_bus[0].Slave.r_opc;
-        assign ape_core_debug_l2[0].r_valid     = s_mem_l2_pri_bus[0].Slave.r_valid;
+    assign ape_core_debug_l2[0].add        = s_mem_l2_pri_bus[0].Slave.add;
+    assign ape_core_debug_l2[0].r_rdata    = s_mem_l2_pri_bus[0].Slave.r_rdata;
+    assign ape_core_debug_l2[0].req        = s_mem_l2_pri_bus[0].Slave.req;
+    assign ape_core_debug_l2[0].gnt        = s_mem_l2_pri_bus[0].Slave.gnt;
+    assign ape_core_debug_l2[0].r_opc      = s_mem_l2_pri_bus[0].Slave.r_opc;
+    assign ape_core_debug_l2[0].r_valid    = s_mem_l2_pri_bus[0].Slave.r_valid;
+`endif
 
 
 
@@ -549,6 +553,8 @@ module pulp_soc import dm::*; import ape_pkg::*; #(
         .test_mode_i ( dft_test_mode_i )
     );
 
+`ifdef APE_ROM_EMUL
+
     logic [31:0] ape_core_rom_rdata;
     logic [31:0] ape_core_rom_wdata;
     logic        ape_core_rom_gnt;
@@ -558,7 +564,7 @@ module pulp_soc import dm::*; import ape_pkg::*; #(
     assign ape_core_rom_wdata = s_mem_rom_bus.Slave.wdata;
     assign ape_core_rom_gnt = s_mem_rom_bus.Slave.gnt;
     assign ape_core_rom_rvalid = s_mem_rom_bus.Slave.r_valid;
-
+`endif
     //********************************************************
     //********************* SOC PERIPHERALS ******************
     //********************************************************

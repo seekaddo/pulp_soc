@@ -48,7 +48,7 @@ apb_interrupt_cntrl:
   commit: v0.0.1
   domain: [soc]
 ape_core:
-  commit: f5d75bd5be5161177801ec270cf84931815665b9
+  commit: rom_v1.0
   group:  seekaddo
   domain: [cluster, soc]
 axi/axi:

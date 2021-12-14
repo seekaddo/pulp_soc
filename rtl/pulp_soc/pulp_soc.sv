@@ -10,6 +10,7 @@
 
 
 `include "pulp_soc_defines.sv"
+`include "ape_co.svh"
 `include "ape_core.svh"
 
 module pulp_soc import dm::*; import ape_pkg::*; #(

@@ -1,6 +1,7 @@
 pulp_soc:
   incdirs: [
     ../../rtl/includes,
+    ../ape_core/include,
     rtl/include,
     ../axi/axi/include
 
@@ -28,6 +29,7 @@ pulp_soc:
   ]
   vlog_opts : [
     -L riscv_dbg_lib,
+    -L ape_core_lib,
     -L axi_lib
   ]
 udma_subsystem:

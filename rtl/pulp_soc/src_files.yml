@@ -1,9 +1,11 @@
 pulp_soc:
   vlog_opts: [
     -L riscv_dbg_lib,
+    -L ape_core_lib,
   ]
   incdirs: [
     ../includes,
+    ../../ape_core/include,
   ]
   files: [
     soc_interconnect.sv,

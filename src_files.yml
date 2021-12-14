@@ -2,8 +2,8 @@ pulp_soc:
   incdirs: [
     ../../rtl/includes,
     rtl/include,
-    ../axi/axi/include,
-    ../ape_core/include
+    ../axi/axi/include
+
   ]
   files: [
     rtl/pulp_soc/pkg_soc_interconnect.sv,
@@ -28,7 +28,6 @@ pulp_soc:
   ]
   vlog_opts : [
     -L riscv_dbg_lib,
-    -L ape_core_lib,
     -L axi_lib
   ]
 udma_subsystem:

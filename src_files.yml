@@ -2,7 +2,7 @@ pulp_soc:
   incdirs: [
     ../../rtl/includes,
     rtl/include,
-    ../axi/axi/include
+    ../axi/axi/include,
     ../ape_core/include
   ]
   files: [

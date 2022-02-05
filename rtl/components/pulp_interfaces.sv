@@ -53,21 +53,24 @@ endinterface // XBAR_TCDM_BUS_64
 //**************** XBAR TCDM BUS ***************************
 //**********************************************************
 
-interface XBAR_TCDM_BUS;
+interface XBAR_TCDM_BUS
+#(
+      parameter BUS_DATA_WIDTH = 32
+);
 
    // REQUEST CHANNEL
    //***************************************
-   logic          req;
-   logic [31:0]   add;
-   logic          wen;
-   logic [31:0]   wdata;
-   logic [3:0]    be;
-   logic          gnt;
+   logic                        req;
+   logic [31:0]                 add;
+   logic                        wen;
+   logic [BUS_DATA_WIDTH-1:0]   wdata;
+   logic [3:0]                  be;
+   logic                        gnt;
 
    // RESPONSE CHANNEL
-   logic         r_opc;
-   logic [31:0]  r_rdata;
-   logic         r_valid;
+   logic                       r_opc;
+   logic [BUS_DATA_WIDTH-1:0]  r_rdata;
+   logic                       r_valid;
 
    // Master Side
    //***************************************

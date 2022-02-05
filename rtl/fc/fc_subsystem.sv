@@ -70,6 +70,8 @@ module fc_subsystem #(
     logic core_clock_en;
     logic fetch_en_eu  ;
 
+    //todo: Important to ape_core
+    //change this to 34 bits instruction address stays the same
     //Core Instr Bus
     logic [31:0] core_instr_addr, core_instr_rdata;
     logic        core_instr_req, core_instr_gnt, core_instr_rvalid, core_instr_err;
@@ -86,6 +88,8 @@ module fc_subsystem #(
 
     assign hart_id = {21'b0, CLUSTER_ID[5:0], 1'b0, CORE_ID[3:0]};
 
+    //todo: will be making changes in the instruction_bus interface
+    //todo: this code here is not used: forgot to delete
     XBAR_TCDM_BUS core_data_bus ();
     XBAR_TCDM_BUS core_instr_bus ();
 
@@ -103,6 +107,7 @@ module fc_subsystem #(
     assign core_data_err         = l2_data_master.r_opc;
 
 
+    //todo: major changes needed here and also at the Logari. Interconnect ()
     assign l2_instr_master.req   = core_instr_req;
     assign l2_instr_master.add   = core_instr_addr;
     assign l2_instr_master.wen   = 1'b1;

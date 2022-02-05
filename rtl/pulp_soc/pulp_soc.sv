@@ -10,9 +10,11 @@
 
 
 `include "pulp_soc_defines.sv"
+`include "ape_core.svh"
 
-module pulp_soc import dm::*; #(
+module pulp_soc import dm::*; import ape_pkg::*; #(
     parameter CORE_TYPE               = 0,
+    parameter APE_EMUL_TYPE           = 1,
     parameter USE_FPU                 = 1,
     parameter USE_HWPE                = 1,
     parameter USE_CLUSTER_EVENT       = 1,
@@ -432,7 +434,17 @@ module pulp_soc import dm::*; #(
 
     APB_BUS s_apb_periph_bus ();
 
-    XBAR_TCDM_BUS s_mem_rom_bus ();
+`ifdef APE_EMUL
+
+    XBAR_TCDM_BUS #(.BUS_DATA_WIDTH(`APE_CORE_DATA_WIDTH))  ape_mem_rom_bus (); // todo: change this to APE_CORE_DATA_WIDTH
+    XBAR_TCDM_BUS                                           s_mem_rom_bus (); // todo: change this to APE_CORE_DATA_WIDTH
+
+    `else
+
+    XBAR_TCDM_BUS  s_mem_rom_bus ();
+
+`endif
+
 
     XBAR_TCDM_BUS  s_mem_l2_bus[NB_L2_BANKS-1:0]();
     XBAR_TCDM_BUS  s_mem_l2_pri_bus[NB_L2_BANKS_PRI-1:0]();
@@ -506,6 +518,9 @@ module pulp_soc import dm::*; #(
     //********************* SOC L2 RAM ***********************
     //********************************************************
 
+    //todo: On the Target Instruction is read using this L2 memory reader
+    //todo: All source code -C coude instructions are stored in L2_ private BANK 1
+    //todo: check s_mem_l2_pri_bus for more details
     l2_ram_multi_bank #(
         .NB_BANKS              ( NB_L2_BANKS )
     ) l2_ram_i (
@@ -517,21 +532,80 @@ module pulp_soc import dm::*; #(
         .mem_pri_slave   ( s_mem_l2_pri_bus   )
     );
 
+`ifdef APE_L2_PSLAVE0_EMUL
+    localparam int unsigned SLAVE_INDEX       = 1;
+    ape_core_t ape_core_debug_l2[SLAVE_INDEX];
+
+    assign ape_core_debug_l2[0].add        = s_mem_l2_pri_bus[0].Slave.add;
+    assign ape_core_debug_l2[0].r_rdata    = s_mem_l2_pri_bus[0].Slave.r_rdata;
+    assign ape_core_debug_l2[0].req        = s_mem_l2_pri_bus[0].Slave.req;
+    assign ape_core_debug_l2[0].gnt        = s_mem_l2_pri_bus[0].Slave.gnt;
+    assign ape_core_debug_l2[0].r_opc      = s_mem_l2_pri_bus[0].Slave.r_opc;
+    assign ape_core_debug_l2[0].r_valid    = s_mem_l2_pri_bus[0].Slave.r_valid;
+`endif
+
+
+
 
     //********************************************************
     //******              SOC BOOT ROM             ***********
     //********************************************************
 
+    //todo: Change boot read address to read ape_core instr length=34 Or any
+    //todo: just fpr FPGA emulation
     boot_rom #(
         .ROM_ADDR_WIDTH(ROM_ADDR_WIDTH)
+`ifdef APE_ROM_EMUL
+        , .ROM_DATA_WIDTH(`APE_CORE_DATA_WIDTH) // todo: change this to APE_CORE_DATA_WIDTH
+`endif
     ) boot_rom_i (
         .clk_i       ( s_soc_clk       ),
         .rst_ni      ( s_soc_rstn      ),
         .init_ni     ( 1'b1            ),
-        .mem_slave   ( s_mem_rom_bus   ),
+        .mem_slave   ( ape_mem_rom_bus ), // Todo: connecting this to ape_core
         .test_mode_i ( dft_test_mode_i )
     );
 
+`ifdef APE_ROM_EMUL
+
+    ape_core_t ape_core_debug_rom;
+
+    logic [31:0] ape_core_rom_rdata;
+    logic [31:0] ape_core_rom_wdata;
+    logic        ape_core_rom_gnt;
+    logic        ape_core_rom_rvalid;
+
+    //todo: Ape core interface here
+    ape_core #(.APE_DATAWIDTH(`APE_CORE_DATA_WIDTH))
+        ape_core_i (
+        .clk_i(        s_soc_clk        ),
+        .rst_ni(       s_soc_rstn       ),
+        .mem_slave_i(  ape_mem_rom_bus  ),
+        .mem_slave_0(  s_mem_rom_bus  )
+    ); // todo: change this to APE_CORE_DATA_WIDTH Csr
+
+
+    //todo: dump intruction to file /home/seekaddo/Documents/riscv5/pulpissimo/ips/ape_core/src/ape_intrc.txt
+    int fd;
+    initial begin
+        fd = $fopen("/home/seekaddo/Documents/riscv5/pulpissimo/ips/ape_core/src/ape_intrc.txt", "a");
+    end
+
+    always_ff @(negedge s_soc_clk)
+    begin
+        if(s_mem_rom_bus.Slave.gnt == 1 && s_mem_rom_bus.Slave.r_valid == 1)
+            begin
+              $fdisplay(fd, "adr: %h <---> ih: %h ib: %b",s_mem_rom_bus.Slave.add, s_mem_rom_bus.Slave.r_rdata, s_mem_rom_bus.Slave.r_rdata);
+            end
+    end
+
+    assign ape_core_debug_rom.r_rdata    = s_mem_rom_bus.Slave.r_rdata;
+    assign ape_core_debug_rom.r_valid    = s_mem_rom_bus.Slave.r_valid;
+    assign ape_core_debug_rom.r_opc      = s_mem_rom_bus.Slave.r_opc;
+    assign ape_core_debug_rom.req        = s_mem_rom_bus.Slave.req;
+    assign ape_core_debug_rom.add        = s_mem_rom_bus.Slave.add;
+    assign ape_core_debug_rom.gnt        = s_mem_rom_bus.Slave.gnt;
+`endif
     //********************************************************
     //********************* SOC PERIPHERALS ******************
     //********************************************************
